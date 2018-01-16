@@ -120,18 +120,10 @@ export class KrakenClient {
       timeout: this._options.timeout
     });
 
-    const response = JSON.parse(body);
+    const response: {error: string[]} = JSON.parse(body);
 
     if (response.error && response.error.length) {
-      const error: string[] = response.error
-        .filter((e: string) => e.startsWith('E'))
-        .map((e: string) => e.substr(1));
-
-        if (!error.length) {
-          throw new Error("Kraken API returned an unknown error");
-        }
-
-        throw new Error(error.join(", "));
+      throw new Error(response.error.join(", "));
     }
 
     return response;
