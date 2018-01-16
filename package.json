@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/got": "^7.1.6",
     "@types/node": "^8.5.2",
+    "@types/qs": "^6.5.1",
     "nodemon": "^1.14.1",
     "ts-node": "^3.3.0",
     "typescript": "^2.6.2"
@@ -26,6 +27,6 @@
   "dependencies": {
     "chalk": "^2.3.0",
     "got": "^8.0.1",
-    "typescript-collections": "^1.2.5"
+    "qs": "^6.5.1"
   }
 }
