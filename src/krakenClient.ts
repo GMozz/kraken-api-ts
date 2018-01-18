@@ -25,13 +25,23 @@ export class KrakenClient {
     this._secret = secret;
 
     if (options) {
-      if(!options.timeout) {
-        options.timeout = KrakenClient.timeout;
+      if(options.timeout) {
+        this._options = {
+          timeout: options.timeout
+        };
+      } else {
+        this._options = {
+          timeout: KrakenClient.timeout
+        };
+      }
+
+      if (options.otp) {
+        this._options.otp = options.otp;
       }
     } else {
       this._options = {
         timeout: KrakenClient.timeout
-      }
+      };
     }
   }
 
@@ -66,17 +76,17 @@ export class KrakenClient {
 
   private privateMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
     const path = `/${KrakenClient.version}/private/${method}`;
-    const url = `${KrakenClient.url}/${path}`;
+    const url = KrakenClient.url + path;
 
     if (!params) {
       params = {};
     }
 
     if (!params.nonce) {
-      params.nonce = Math.trunc(new Date().getTime()/1000);
+      params.nonce = new Date().getTime();
     }
 
-    if (this._options && this._options.otp) {
+    if (this._options.otp) {
       params.otp = this._options.otp;
     }
 
@@ -98,25 +108,28 @@ export class KrakenClient {
   }
 
   // Create a signature for a request
-  private getMessageSignature(path: string, request: object, secret: string, nonce: number) {
-    const message       = qs.stringify(request);
+  private getMessageSignature(path: string, params: any, secret: string, nonce: number) {
+    const message       = qs.stringify(params);
     const secret_buffer = new Buffer(secret, "base64");
     const hash          = crypto.createHash("sha256");
     const hmac          = crypto.createHmac("sha512", secret_buffer);
-    const hash_digest   = hash.update(nonce + message).digest("latin1");
-    const hmac_digest   = hmac.update(path + hash_digest, "latin1").digest("base64");
+    const hash_digest   = hash.update(nonce + message).digest();
+    const path_buffer   = new Buffer(path);
+    const path_hash_len = hash_digest.length + path_buffer.length;
+    const path_hash     = Buffer.concat([path_buffer, hash_digest], path_hash_len);
+    const hmac_digest   = hmac.update(path_hash).digest("base64");
   
     return hmac_digest;
   }
 
   //Send an API request
-  private async rawRequest(url: string, headers: { [key: string]: any }, data?: any): Promise<any> {
+  private async rawRequest(url: string, headers: { [key: string]: any }, params?: any): Promise<any> {
     // Set custom User-Agent string
     headers["User-Agent"] = KrakenClient.userAgent;
 
     const { body } = await got.post(url, {
       headers: headers,
-      body: qs.stringify(data),
+      body: qs.stringify(params),
       timeout: this._options.timeout
     });
 
