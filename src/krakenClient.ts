@@ -20,6 +20,12 @@ export class KrakenClient {
   private _secret: string;
   private _options: {timeout: number, otp?: string};
 
+  /**
+   * 
+   * @param key string
+   * @param secret string
+   * @param options {timeout?: number, otp?: string}
+   */
   constructor(key: string, secret: string, options?: {timeout?: number, otp?: string}) {
     this._key = key;
     this._secret = secret;
@@ -61,6 +67,12 @@ export class KrakenClient {
     }
   }
 
+  /**
+   * 
+   * @param method string
+   * @param params any
+   * @param callback (error?: string, result?: any)
+   */
   private publicMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
     const url = `${KrakenClient.url}/${KrakenClient.version}/public/${method}`;
     const response = this.rawRequest(url, {}, params);
@@ -68,12 +80,18 @@ export class KrakenClient {
     if (callback) {
       response
         .then((result) => callback(undefined, result))
-        .catch((error) => callback(error, null));
+        .catch((error) => callback(error.message, null));
     }
 
     return response;
   }
 
+  /**
+   * 
+   * @param method string
+   * @param params any
+   * @param callback (error?: string, result?: any)
+   */
   private privateMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
     const path = `/${KrakenClient.version}/private/${method}`;
     const url = KrakenClient.url + path;
@@ -101,13 +119,19 @@ export class KrakenClient {
     if (callback) {
       response
         .then((result) => callback(undefined, result))
-        .catch((error) => callback(error, null));
+        .catch((error) => callback(error.message, null));
     }
 
     return response;
   }
 
-  // Create a signature for a request
+  /**
+   * Create a signature for a request
+   * @param path string
+   * @param params any
+   * @param secret string
+   * @param nonce number
+   */
   private getMessageSignature(path: string, params: any, secret: string, nonce: number) {
     const message       = qs.stringify(params);
     const secret_buffer = new Buffer(secret, "base64");
@@ -122,7 +146,12 @@ export class KrakenClient {
     return hmac_digest;
   }
 
-  //Send an API request
+  /**
+   * Send an API request
+   * @param url string
+   * @param headers { [key: string]: any }
+   * @param params any
+   */
   private async rawRequest(url: string, headers: { [key: string]: any }, params?: any): Promise<any> {
     // Set custom User-Agent string
     headers["User-Agent"] = KrakenClient.userAgent;
