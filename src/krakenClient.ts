@@ -20,6 +20,9 @@ export class KrakenClient {
   private _secret: string;
   private _options: {timeout: number, otp?: string};
 
+  //Optional JSON reviver
+  private _reviver?: (key: any, value: any) => any;
+
   /**
    * 
    * @param key string
@@ -49,6 +52,10 @@ export class KrakenClient {
         timeout: KrakenClient.timeout
       };
     }
+  }
+
+  public setReviver(reviver?: (key: any, value: any) => any) {
+    this._reviver = reviver;
   }
 
   /**
@@ -162,7 +169,7 @@ export class KrakenClient {
       timeout: this._options.timeout
     });
 
-    const response: {error: string[]} = JSON.parse(body);
+    const response: {error: string[]} = JSON.parse(body, this._reviver);
 
     if (response.error && response.error.length) {
       throw new Error(response.error.join(", "));
