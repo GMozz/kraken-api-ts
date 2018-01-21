@@ -5,10 +5,20 @@ export class KrakenClientWrapper {
 
     private _krakenClient: KrakenClient;
 
+    /**
+     * Provide the wrapper with the kraken client that'll make the eventual API calls
+     * @param krakenClient KrakenClient
+     */
     constructor(krakenClient: KrakenClient) {
         this._krakenClient = krakenClient;
     }
 
+    /**
+     * Get the open orders. All parameters are optional, returns statically typed OrderInfo object.
+     * Official API docs from Kraken: https://www.kraken.com/help/api#get-open-orders
+     * @param trades boolean
+     * @param userref string
+     */
     public getOpenOrders(trades?: boolean, userref?: string): Promise<OrderInfo> {
         const params: any = {};
         if (trades) {
@@ -22,6 +32,11 @@ export class KrakenClientWrapper {
         return this._krakenClient.api("OpenOrders", params, undefined, this.openOrderReviver);
     }
 
+    /**
+     * Kraken returns all orders as a dictionary instead of an array, this reviver converts it into an array
+     * @param key string
+     * @param value any
+     */
     private openOrderReviver(key: string, value: any): any {
         if (key === "open") {
             const orders = new Array<Order>();
@@ -35,6 +50,16 @@ export class KrakenClientWrapper {
         return value;
     }
 
+    /**
+     * Get the closed orders. All parameters are optional, returns statically typed OrderInfo object.
+     * Official API docs from Kraken: https://www.kraken.com/help/api#get-closed-orders
+     * @param trades boolean
+     * @param userref string
+     * @param start number
+     * @param end number
+     * @param ofs number
+     * @param closetime string
+     */
     public getClosedOrders(trades?: boolean, userref?: string, start?: number, end?: number, ofs?: number, closetime?: string): Promise<OrderInfo> {
         const params: any = {};
         if (trades) {
@@ -60,6 +85,11 @@ export class KrakenClientWrapper {
         return this._krakenClient.api("ClosedOrders", params, undefined, this.closedOrderReviver);
     }
 
+    /**
+     * Kraken returns all orders as a dictionary instead of an array, this reviver converts it into an array
+     * @param key string
+     * @param value any
+     */
     private closedOrderReviver(key: string, value: any): any {
         if (key === "closed") {
             const orders = new Array<Order>();
