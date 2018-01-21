@@ -9,7 +9,7 @@ export class KrakenClientWrapper {
         this._krakenClient = krakenClient;
     }
 
-    public async getOpenOrders(trades?: boolean, userref?: string): Promise<OrderInfo> {
+    public getOpenOrders(trades?: boolean, userref?: string): Promise<OrderInfo> {
         const params: any = {};
         if (trades) {
             params.trades = trades;
@@ -19,11 +19,7 @@ export class KrakenClientWrapper {
         }
 
         //Add a reviver to convert the dictionary into an array of orders
-        this._krakenClient.setReviver(this.openOrderReviver);
-        const promise = await this._krakenClient.api("OpenOrders", params);
-        this._krakenClient.setReviver(undefined);
-
-        return promise;
+        return this._krakenClient.api("OpenOrders", params, undefined, this.openOrderReviver);
     }
 
     private openOrderReviver(key: string, value: any): any {
@@ -39,7 +35,7 @@ export class KrakenClientWrapper {
         return value;
     }
 
-    public async getClosedOrders(trades?: boolean, userref?: string, start?: number, end?: number, ofs?: number, closetime?: string): Promise<OrderInfo> {
+    public getClosedOrders(trades?: boolean, userref?: string, start?: number, end?: number, ofs?: number, closetime?: string): Promise<OrderInfo> {
         const params: any = {};
         if (trades) {
             params.trades = trades;
@@ -61,11 +57,7 @@ export class KrakenClientWrapper {
         }
 
         //Add a reviver to convert the dictionary into an array of orders
-        this._krakenClient.setReviver(this.closedOrderReviver);
-        const promise = await this._krakenClient.api("ClosedOrders", params);
-        this._krakenClient.setReviver(undefined);
-
-        return promise;
+        return this._krakenClient.api("ClosedOrders", params, undefined, this.closedOrderReviver);
     }
 
     private closedOrderReviver(key: string, value: any): any {

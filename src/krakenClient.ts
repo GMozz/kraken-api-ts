@@ -20,9 +20,6 @@ export class KrakenClient {
   private _secret: string;
   private _options: {timeout: number, otp?: string};
 
-  //Optional JSON reviver
-  private _reviver?: (key: any, value: any) => any;
-
   /**
    * 
    * @param key string
@@ -54,21 +51,17 @@ export class KrakenClient {
     }
   }
 
-  public setReviver(reviver?: (key: any, value: any) => any) {
-    this._reviver = reviver;
-  }
-
   /**
    * This method makes a public or private API request.
    * @param method string
    * @param params any
    * @param callback (error: string, result: any)
    */
-  public api(method:string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
+  public api(method:string, params?: any, callback?: (error?: string, result?: any) => void, reviver?: (key: any, value: any) => any): Promise<any> {
     if (KrakenClient.publicMethods.includes(method)) {
-      return this.publicMethod(method, params, callback);
+      return this.publicMethod(method, params, callback, reviver);
     } else if(KrakenClient.privateMethods.includes(method)) {
-      return this.privateMethod(method, params, callback);
+      return this.privateMethod(method, params, callback, reviver);
     } else {
       throw new Error(`${method} is not a valid API method.`);
     }
@@ -80,9 +73,9 @@ export class KrakenClient {
    * @param params any
    * @param callback (error?: string, result?: any)
    */
-  private publicMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
+  private publicMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void, reviver?: (key: any, value: any) => any): Promise<any> {
     const url = `${KrakenClient.url}/${KrakenClient.version}/public/${method}`;
-    const response = this.rawRequest(url, {}, params);
+    const response = this.rawRequest(url, {}, params, reviver);
 
     if (callback) {
       response
@@ -99,7 +92,7 @@ export class KrakenClient {
    * @param params any
    * @param callback (error?: string, result?: any)
    */
-  private privateMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void): Promise<any> {
+  private privateMethod(method: string, params?: any, callback?: (error?: string, result?: any) => void, reviver?: (key: any, value: any) => any): Promise<any> {
     const path = `/${KrakenClient.version}/private/${method}`;
     const url = KrakenClient.url + path;
 
@@ -121,7 +114,7 @@ export class KrakenClient {
       "API-Sign": signature
     }
 
-    const response = this.rawRequest(url, headers, params);
+    const response = this.rawRequest(url, headers, params, reviver);
 
     if (callback) {
       response
@@ -159,7 +152,7 @@ export class KrakenClient {
    * @param headers { [key: string]: any }
    * @param params any
    */
-  private async rawRequest(url: string, headers: { [key: string]: any }, params?: any): Promise<any> {
+  private async rawRequest(url: string, headers: { [key: string]: any }, params?: any, reviver?: (key: any, value: any) => any): Promise<any> {
     // Set custom User-Agent string
     headers["User-Agent"] = KrakenClient.userAgent;
 
@@ -169,7 +162,7 @@ export class KrakenClient {
       timeout: this._options.timeout
     });
 
-    const response: {error: string[]} = JSON.parse(body, this._reviver);
+    const response: {error: string[]} = JSON.parse(body, reviver);
 
     if (response.error && response.error.length) {
       throw new Error(response.error.join(", "));
