@@ -17,7 +17,8 @@ const kraken        = new KrakenClient(key, secret);
 const krakenWrapper = new KrakenClientWrapper(kraken);
 
 /*
- * You can use the KrakenClient to make calls directly, for all the API calls that are supported by Kraken.
+ * You can use the KrakenClient to make calls directly,
+ * for all the API calls that are supported by Kraken.
  * 
  * Public API calls: "Time", "Assets", "AssetPairs", "Ticker", "Depth", "Trades", "Spread", "OHLC"
  * 
